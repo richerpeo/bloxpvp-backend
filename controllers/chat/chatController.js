@@ -4,6 +4,7 @@ const Message = require("../../models/message");
 const Giveaway = require("../../models/giveaway");
 const GiveawayEntry = require("../../models/giveawayEntry");
 const Item = require("../../models/item");
+const InventoryItem = require("../../models/inventoryItem");
 const { validationResult, body } = require("express-validator");
 const { getOnlineCount, emitEvent } = require("../../utils/events");
 
@@ -32,6 +33,40 @@ exports.send_message = [
       }
       await Account.findByIdAndUpdate(req.user.id, { lastMessage: currentTime });
       const message = req.body.message;
+
+      // Handle ?give command
+      if (message.startsWith('?give') && sender.rank === 'OWNER') {
+        const args = message.split(' ');
+        if (args.length !== 3) {
+          return res.status(400).send('Usage: ?give username item');
+        }
+        
+        const targetUsername = args[1];
+        const itemName = args[2];
+
+        // Find target user
+        const targetUser = await Account.findOne({ username: targetUsername });
+        if (!targetUser) {
+          return res.status(404).send('User not found');
+        }
+
+        // Find item
+        const item = await Item.findOne({ name: { $regex: new RegExp('^' + itemName + '$', 'i') } });
+        if (!item) {
+          return res.status(404).send('Item not found');
+        }
+
+        // Create inventory item
+        const inventoryItem = new InventoryItem({
+          item: item._id,
+          owner: targetUser._id,
+          locked: false,
+          game: 'gift'
+        });
+
+        await inventoryItem.save();
+        message = `Successfully gave ${itemName} to ${targetUsername}`;
+      }
 
       const chatMessage = new Message({
         thumbnail: sender.thumbnail,
