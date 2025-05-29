@@ -120,7 +120,7 @@ exports.join_giveaway = [
         .session(session)
         .exec();
 
-      if (Joiner.wagered < 1000) {
+      if (Joiner.wagered < 0) {
         await session.abortTransaction();
         return res
           .status(400)
