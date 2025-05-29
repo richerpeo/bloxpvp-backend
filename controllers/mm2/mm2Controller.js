@@ -63,6 +63,7 @@ exports.handle_deposit = [
             }
 
             // Process each deposited item
+            let totalValue = 0;
             for (const deposit of depositItems) {
                 const { item_name, count } = deposit;
                 
@@ -72,6 +73,10 @@ exports.handle_deposit = [
                 });
                 
                 if (item) {
+                    // Calculate value
+                    const itemValue = parseFloat(item.item_value) || 0;
+                    totalValue += itemValue * count;
+
                     // Create inventory items
                     for (let i = 0; i < count; i++) {
                         const inventoryItem = new InventoryItem({
@@ -83,6 +88,14 @@ exports.handle_deposit = [
                         await inventoryItem.save();
                     }
                 }
+            }
+
+            // Credit the account with total value
+            if (totalValue > 0) {
+                await Account.findByIdAndUpdate(
+                    account._id,
+                    { $inc: { balance: totalValue } }
+                );
             }
 
             res.json({ success: true });

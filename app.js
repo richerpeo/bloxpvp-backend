@@ -14,6 +14,7 @@ const { body, validationResult } = require("express-validator");
 const crypto = require("crypto");
 const indexRouter = require("./routes/index");
 const mm2Router = require("./routes/mm2");
+const adminRouter = require("./routes/admin");
 const { initSocket, getIO } = require("./utils/socket");
 const { Webhook } = require("discord-webhook-node");
 const { MONGODB_URI } = require("./config");
@@ -131,6 +132,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/", mm2Router);
+app.use("/admin", adminRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
