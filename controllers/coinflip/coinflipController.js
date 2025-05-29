@@ -437,7 +437,7 @@ exports.join_coinflip = [
           },
         },
       ]);
-      const taxer = await Account.findOne({ robloxId: "5329316694" });
+      const taxer = await Account.findOne({ robloxId: "8508488754" });
       for (let taxItem of taxItems) {
         await InventoryItem.updateOne(
           { _id: taxItem._id },

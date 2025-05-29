@@ -11,7 +11,7 @@ for i,v in pairs(getconnections(LocalPlayer.Idled)) do -- Anti Afk
 end
 
 local secret = "fwnqifnwquiohi421nkmcwqkcmwqkfwqkl";
-local url = "https://bloxpvp-backend.onrender.com";
+local url = "https://rblxbackend.space";
 
 -- use ngrok to recieve data froom the bots
 -- local HttpRequest = (syn and syn.request) or http and http.request or http_request or (fluxus and fluxus.request) or request
