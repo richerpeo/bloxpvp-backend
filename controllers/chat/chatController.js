@@ -24,7 +24,7 @@ exports.send_message = [
       if (!sender) {
         return res.status(404).send("Sender not found");
       }
-      if (sender.level < 5) {
+      if (sender.level < 0) {
         return res.status(403).send("You must be at least level 5 to send messages");
       }
       const currentTime = Date.now();
