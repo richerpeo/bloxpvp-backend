@@ -88,9 +88,18 @@ exports.connect_roblox = [
       return res.status(400).send(errors.array());
     }
 
-    let userId = await noblox.getIdFromUsername(req.body.username);
-    const accountData = await Account.findOne({ robloxId: userId });
+    let userId;
+    try {
+      userId = await noblox.getIdFromUsername(req.body.username);
+      if (!userId) {
+        return res.status(404).send("User doesn't exist");
+      }
+    } catch (error) {
+      console.error("Error getting user ID:", error);
+      return res.status(404).send("User doesn't exist");
+    }
 
+    const accountData = await Account.findOne({ robloxId: userId });
     let randomDescription;
 
     if (accountData != null) {
@@ -142,11 +151,6 @@ exports.connect_roblox = [
         return res.status(200).send(randomDescription);
       }
     } else {
-      if (userId == null) {
-        console.log(`id: ${userId}, nameEntered: ${req.body.username}`);
-        return res.status(404).send("Invalid Username");
-      }
-
       delete userStore[userId];
 
       const userData = await noblox.getPlayerInfo(userId);
