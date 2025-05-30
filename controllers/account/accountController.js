@@ -92,11 +92,28 @@ exports.connect_roblox = [
     try {
       userId = await noblox.getIdFromUsername(req.body.username);
       if (!userId) {
-        return res.status(404).send("User doesn't exist");
+        return res.status(404).json({
+          success: false,
+          message: "Roblox user not found. Please check the username and try again."
+        });
+      }
+      
+      // Verify the user exists by getting their info
+      try {
+        await noblox.getPlayerInfo(userId);
+      } catch (playerError) {
+        console.error("Error verifying player info:", playerError);
+        return res.status(404).json({
+          success: false,
+          message: "Unable to verify Roblox account. Please try again later."
+        });
       }
     } catch (error) {
       console.error("Error getting user ID:", error);
-      return res.status(404).send("User doesn't exist");
+      return res.status(404).json({
+        success: false,
+        message: "Invalid Roblox username. Please check the username and try again."
+      });
     }
 
     const accountData = await Account.findOne({ robloxId: userId });
@@ -151,6 +168,14 @@ exports.connect_roblox = [
         return res.status(200).send(randomDescription);
       }
     } else {
+      if (userId == null) {
+        console.log(`id: ${userId}, nameEntered: ${req.body.username}`);
+        return res.status(404).json({
+          success: false,
+          message: "Invalid Roblox username. Please check the username and try again."
+        });
+      }
+
       delete userStore[userId];
 
       const userData = await noblox.getPlayerInfo(userId);
@@ -246,29 +271,43 @@ exports.roblox_auth_check = asyncHandler(async (req, res, next) => {
 exports.get_profile = [
   body("userId").trim().escape(),
   asyncHandler(async (req, res) => {
-    const userData = await Account.findOne({ robloxId: req.body.userId });
+    try {
+      const userData = await Account.findOne({ robloxId: req.body.userId });
 
-    if (!userData) {
-      return res.status(404).send("User was not found");
+      if (!userData) {
+        return res.status(404).json({
+          success: false,
+          message: "User not found in our database. Please make sure the account is connected first."
+        });
+      }
+
+      const nextLevel = Math.ceil(userData.level);
+      const nextLevelXP = Math.pow(nextLevel / 0.04, 2);
+
+      const toReturn = {
+        success: true,
+        data: {
+          totalBets: userData.totalBets,
+          gamesWon: userData.gameWins,
+          wagered: userData.wagered,
+          profit: userData.withdrawn - userData.deposited,
+          username: userData.username,
+          xp: userData.wagered,
+          xpMax: nextLevelXP,
+          level: userData.level,
+          thumbnail: userData.thumbnail,
+          joinDate: userData.joinDate
+        }
+      };
+
+      res.status(200).json(toReturn);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      res.status(500).json({
+        success: false,
+        message: 'An error occurred while fetching the user profile'
+      });
     }
-
-    const nextLevel = Math.ceil(userData.level);
-    const nextLevelXP = Math.pow(nextLevel / 0.04, 2);
-
-    const toReturn = {
-      totalBets: userData.totalBets,
-      gamesWon: userData.gameWins,
-      wagered: userData.wagered,
-      profit: userData.withdrawn - userData.deposited,
-      username: userData.username,
-      xp: userData.wagered,
-      xpMax: nextLevelXP,
-      level: userData.level,
-      thumbnail: userData.thumbnail,
-      joinDate: userData.joinDate,
-    };
-
-    res.status(200).send(toReturn);
   }),
 ];
 
