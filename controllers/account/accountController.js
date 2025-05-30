@@ -88,6 +88,7 @@ exports.connect_roblox = [
       return res.status(400).send(errors.array());
     }
 
+<<<<<<< HEAD
     let userId;
     try {
       userId = await noblox.getIdFromUsername(req.body.username);
@@ -116,7 +117,11 @@ exports.connect_roblox = [
       });
     }
 
+=======
+    let userId = await noblox.getIdFromUsername(req.body.username);
+>>>>>>> parent of 54657a6 (Update accountController.js)
     const accountData = await Account.findOne({ robloxId: userId });
+
     let randomDescription;
 
     if (accountData != null) {
@@ -170,10 +175,14 @@ exports.connect_roblox = [
     } else {
       if (userId == null) {
         console.log(`id: ${userId}, nameEntered: ${req.body.username}`);
+<<<<<<< HEAD
         return res.status(404).json({
           success: false,
           message: "Invalid Roblox username. Please check the username and try again."
         });
+=======
+        return res.status(404).send("Invalid Username");
+>>>>>>> parent of 54657a6 (Update accountController.js)
       }
 
       delete userStore[userId];
